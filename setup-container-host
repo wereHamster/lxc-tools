@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+brctl addbr lxc
+ip link set lxc up
+
+systemctl start radvd
+systemctl start aiccu
+
+echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
