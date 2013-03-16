@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+VOLUME="/srv/lxc/template"
+if test -d "$VOLUME"; then
+  echo "Template already exists. Exiting"; exit
+fi
+
+RELEASE="quantal"
+MIRROR="http://archive.ubuntu.com/ubuntu"
+
+btrfs subvol create "$VOLUME"
+debootstrap --verbose --arch=amd64 --include=apt,vim,ssh "$RELEASE" "$VOLUME" "$MIRROR"
+
+echo "root:root" | chroot $VOLUME chpasswd
+
+cat > "$VOLUME/etc/apt/sources.list" << EOF
+deb $MIRROR  $RELEASE           main restricted universe
+deb $MIRROR  $RELEASE-updates   main restricted universe
+deb $MIRROR  $RELEASE-security  main restricted universe
+EOF
+
+chroot "$VOLUME" apt-get update
+chroot "$VOLUME" apt-get dist-upgrade -y
